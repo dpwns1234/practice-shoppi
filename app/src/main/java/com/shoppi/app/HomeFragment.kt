@@ -1,22 +1,20 @@
-package com.shoppi.app.ui.home
+package com.shoppi.app
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
-import com.shoppi.app.*
-import com.shoppi.app.ui.common.ViewModelFactory
+import com.google.gson.Gson
+import org.json.JSONObject
 
 class HomeFragment : Fragment() {
 
-    private val viewModel: HomeViewModel by viewModels { ViewModelFactory(requireContext()) }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,32 +32,37 @@ class HomeFragment : Fragment() {
         val viewpager = view.findViewById<ViewPager2>(R.id.viewpager_home_banner)
         val viewpagerIndicator = view.findViewById<TabLayout>(R.id.viewpager_home_banner_indicator)
 
-        viewModel.title.observe(viewLifecycleOwner) { title ->
-            titleText.text = title.text
-            GlideApp.with(this)
-                .load(title.iconUrl)
-                .into(titleIcon)
-        }
 
-        viewpager.adapter = HomeBannerAdapter().apply {
-            viewModel.topBanners.observe(viewLifecycleOwner) { banners ->
-                submitList(banners)
+        val assetLoader = AssetLoader()
+        val homeJsonString = assetLoader.getJsonString(requireContext(), "home.json")
+        Log.d("homeData", homeJsonString ?:"")
+
+        if(!homeJsonString.isNullOrEmpty()){
+            val gson = Gson()
+            val homeData = gson.fromJson(homeJsonString, HomeData::class.java)
+
+
+
+            titleText.text = homeData.title.text
+            GlideApp.with(this)
+                .load(homeData.title.iconUrl)
+                .into(titleIcon)
+
+
+            viewpager.adapter = HomeBannerAdapter().apply {
+                submitList(homeData.topBanners)
             }
         }
 
-        val pageWidth = resources.getDimension(R.dimen.viewpager_item_width)
-        val pageMargin = resources.getDimension(R.dimen.viewpager_item_margin)
-        val screenWidth = resources.displayMetrics.widthPixels
-        val offset = screenWidth - pageWidth - pageMargin
-
-        viewpager.offscreenPageLimit = 1
-        viewpager.setPageTransformer { page, position ->
-            page.translationX = position * -offset
+        val status: Int? = null
+        fun checkNullLet() {
+            status?.let {
+                println("score = ${it}")
+            }
+            val str = status?.let { status.toString() }
         }
-        TabLayoutMediator(viewpagerIndicator, viewpager) { tab, position ->
-
-        }.attach()
     }
+
 
 
 }

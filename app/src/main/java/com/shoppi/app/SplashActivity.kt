@@ -1,4 +1,4 @@
-package com.shoppi.app.ui
+package com.shoppi.app
 
 import android.content.Intent
 import android.os.Bundle
